@@ -1,28 +1,27 @@
-import os
-import ffmpeg
 from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
 from pyrogram.types import Message
-from telegram.ext import Updater, CommandHandler, filters, CallbackContext
+import ffmpeg
+import os
 from tqdm import tqdm
 
 TOKEN = os.getenv('5995368320:AAHhq6gZ0M-EHSfX6w96XXUUN-Z7oSg7S5w')
 api_id = '20210345'
 api_hash = '11bcb58ae8cfb85168fc1f2f8f4c04c2'
 
-app = Client("my_account", api_id=api_id, api_hash=api_hash)
-updater = Updater(token=TOKEN)
-dispatcher = updater.dispatcher
+app = Client("my_account", api_id=api_id, api_hash=api_hash, bot_token=TOKEN)
 
 resolution = '640x480'  # Default resolution
 
-def start(update: Update, context: CallbackContext) -> None:
-    update.message.reply_text('Hello! Send me a video and I will encode it.')
+@app.on_message(filters.command("start"))
+async def start(client: Client, message: Message):
+    await message.reply_text('Hello! Send me a video and I will encode it.')
 
-def set_resolution(update: Update, context: CallbackContext) -> None:
+@app.on_message(filters.command("set_resolution"))
+async def set_resolution(client: Client, message: Message):
     global resolution
-    resolution = context.args[0]
-    update.message.reply_text(f'Set resolution to {resolution}.')
+    resolution = message.text.split()[1]
+    await message.reply_text(f'Set resolution to {resolution}.')
 
 @app.on_message(filters.video)
 async def encode_video(client: Client, message: Message):
@@ -55,8 +54,5 @@ async def encode_video(client: Client, message: Message):
 def progress(current: int, total: int, prefix: str, message: Message):
     message.edit_text(f'{prefix}: {current * 100 / total:.1f}%')
 
-dispatcher.add_handler(CommandHandler("start", start))
-dispatcher.add_handler(CommandHandler("set_resolution", set_resolution))
-
 app.run()
-  
+
